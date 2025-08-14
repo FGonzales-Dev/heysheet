@@ -37,7 +37,7 @@ def _get_engine():
 
 _groq = Groq(api_key=os.getenv("GROQ_API_KEY"))
 
-# STRONGER rules to avoid false positives (no LLM fallback by default)
+# STRONG rules (no LLM fallback) to avoid misclassifying simple Q&A
 def _intent(text: str) -> str:
     t = text.lower().strip()
 
@@ -61,49 +61,136 @@ def _intent(text: str) -> str:
     return "qa"
 
 
+# ---------- helpers for field extraction ----------
+def _best_service_match(text: str, services):
+    """Pick a service by token overlap with the catalog (simple & fast)."""
+    text_l = text.lower()
+    names = []
+    for s in services:
+        n = s.get("Class Name") or s.get("Service") or s.get("Name")
+        if n:
+            names.append(n)
+
+    if not names:
+        return None
+
+    # exact-ish substring first
+    for n in names:
+        if n.lower() in text_l:
+            return n
+
+    # token overlap score
+    def toks(s): return {w for w in re.findall(r"[a-z0-9]+", s.lower()) if len(w) >= 3}
+    tset = toks(text)
+    best, best_score = None, 0.0
+    for n in names:
+        nset = toks(n)
+        if not nset:
+            continue
+        score = len(tset & nset) / len(nset)
+        if score > best_score:
+            best, best_score = n, score
+
+    return best if best_score >= 0.3 else None
+
+
 def _extract_create(text: str, services_data):
-    """extract name/email/phone/service/total_sessions/sessions_text from free text."""
-    try:
-        out = _groq.chat.completions.create(
-            model="llama3-8b-8192",
-            temperature=0,
-            messages=[
-                {"role": "system", "content": "Extract booking fields and return STRICT JSON only."},
-                {
-                    "role": "user",
-                    "content": (
-                        f"Services (truncated): {json.dumps(services_data[:8])}\n"
+    """
+    Parse name/email/phone/service/total_sessions/sessions_text.
+    Rule-based first; if some are missing, ask LLM to fill ONLY gaps.
+    """
+    out = {
+        "name": "",
+        "email": "",
+        "phone": "",
+        "service": "",
+        "total_sessions": 0,
+        "sessions_text": ""
+    }
+
+    # email
+    m = re.search(r"[A-Z0-9._%+-]+@[A-Z0-9.-]+\.[A-Z]{2,}", text, re.I)
+    if m:
+        out["email"] = m.group(0)
+
+    # phone (longest 7–15 digits)
+    nums = re.findall(r"\b(?:\+?\d[\s-]?){7,15}\b", text)
+    if nums:
+        out["phone"] = max(("".join(filter(str.isdigit, n)) for n in nums), key=len)
+
+    # total sessions: "5 sessions" or "total of 5"
+    m = re.search(r"\b(\d+)\s*sessions?\b", text, re.I)
+    if not m:
+        m = re.search(r"\btotal(?:\s+of)?\s+(\d+)\b", text, re.I)
+    if m:
+        out["total_sessions"] = int(m.group(1))
+
+    # name after "for ..."
+    m = re.search(r"\bfor\s+([A-Z][a-zA-Z]+(?:\s+[A-Z][a-zA-Z]+){0,2})\b", text)
+    if m:
+        out["name"] = m.group(1).strip()
+
+    # sessions_text: "first session ..." or combine "session ..." snippets
+    m = re.search(r"(first\s+session[^,.]+(?:[,;].*)?)", text, re.I)
+    if m:
+        out["sessions_text"] = m.group(1).strip()
+    else:
+        sess_parts = re.findall(r"(session\s*\d*[^,.]+)", text, re.I)
+        if sess_parts:
+            out["sessions_text"] = " | ".join(p.strip() for p in sess_parts)
+
+    # service from catalog
+    svc = _best_service_match(text, services_data)
+    if svc:
+        out["service"] = svc
+
+    # Fill ONLY missing fields via a tiny LLM call
+    missing = [k for k in ["name","email","phone","service","total_sessions","sessions_text"] if not out.get(k)]
+    if missing:
+        try:
+            raw = _groq.chat.completions.create(
+                model="llama3-8b-8192",
+                temperature=0,
+                messages=[
+                    {"role": "system", "content": "Extract fields from text. Return strict JSON only."},
+                    {"role": "user", "content":
+                        f"Catalog (truncated): {json.dumps(services_data[:8])}\n"
                         f"User: {text}\n"
-                        'Return: {"name":"","email":"","phone":"","service":"","total_sessions":0,"sessions_text":""}'
-                    ),
-                },
-            ],
-        ).choices[0].message.content
-        d = json.loads(out)
-        d["total_sessions"] = int(d.get("total_sessions") or 0)
-        return d
-    except Exception:
-        return {}
+                        f"Fill ONLY these missing fields {missing}. "
+                        'Return JSON with keys: name,email,phone,service,total_sessions,sessions_text; '
+                        'do not invent values — leave empty string or 0 if unknown.'}
+                ],
+            ).choices[0].message.content
+            d = json.loads(raw)
+            for k in missing:
+                if k == "total_sessions":
+                    try:
+                        out[k] = int(d.get(k) or 0)
+                    except Exception:
+                        pass
+                else:
+                    if d.get(k):
+                        out[k] = str(d.get(k)).strip()
+        except Exception:
+            pass
+
+    return out
 
 
 def _extract_update(text: str):
     """extract booking_id and patch fields from free text."""
     try:
-        out = _groq.chat.completions.create(
+        raw = _groq.chat.completions.create(
             model="llama3-8b-8192",
             temperature=0,
             messages=[
                 {"role": "system", "content": "Extract update for an appointment. Return STRICT JSON only."},
-                {
-                    "role": "user",
-                    "content": (
-                        f"User: {text}\n"
-                        'Return: {"booking_id":"","name":null,"email":null,"phone":null,"service":null,"total_sessions":null,"sessions_text":null}'
-                    ),
-                },
+                {"role": "user", "content":
+                    f"User: {text}\n"
+                    'Return: {"booking_id":"","name":null,"email":null,"phone":null,"service":null,"total_sessions":null,"sessions_text":null}'}
             ],
         ).choices[0].message.content
-        d = json.loads(out)
+        d = json.loads(raw)
         bid = (d.get("booking_id") or "").strip()
         patch = {
             k: d.get(k)
@@ -126,17 +213,17 @@ def ask(request):
         })
 
     intent = _intent(q)
-    print("\n=== /api/ask ===", {"q": q, "intent": intent})  # watch with: docker compose logs -f backend
+    print("\n=== /api/ask ===", {"q": q, "intent": intent})  # check with: docker compose logs -f backend
 
     # 1) services list (return readable summary + raw array)
     if intent == "services.list":
         svcs = list_services()
         lines = []
         for s in svcs:
-            name = s.get("Class Name") or s.get("Service") or s.get("Name") or "Service"
-            dur  = s.get("Duration")
+            name  = s.get("Class Name") or s.get("Service") or s.get("Name") or "Service"
+            dur   = s.get("Duration")
             price = s.get("Price")
-            loc = s.get("Location")
+            loc   = s.get("Location")
             bits = [name]
             if dur:   bits.append(f"{dur} min")
             if price: bits.append(f"${price}")
@@ -153,8 +240,8 @@ def ask(request):
     if intent == "appointments.create":
         svcs = list_services()
         d = _extract_create(q, svcs)
-        missing = [k for k in ["name", "email", "phone", "service", "total_sessions"] if not d.get(k)]
 
+        missing = [k for k in ["name", "email", "phone", "service", "total_sessions"] if not d.get(k)]
         if missing:
             return Response({
                 "answer": (
@@ -165,7 +252,8 @@ def ask(request):
                     "(alex@example.com, 12345678), 5 sessions, first session 2025-08-15 19:00.”"
                 ),
                 "intent": "appointments.create",
-                "missing": missing
+                "missing": missing,
+                "parsed": d
             })
 
         bid = create_appointment(
@@ -176,7 +264,8 @@ def ask(request):
         return Response({
             "answer": f"Booking created. Your Booking ID is {bid}.",
             "intent": "appointments.create",
-            "booking_id": bid
+            "booking_id": bid,
+            "parsed": d
         })
 
     # 3) update appointment
