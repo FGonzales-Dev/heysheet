@@ -1,7 +1,7 @@
 import { create } from 'zustand';
 import { v4 as uuidv4 } from 'uuid';
 import { ChatService } from '../services/chatService';
-import { ChatState, Message } from '../types/chat';
+import { type ChatState, type Message } from '../types/chat';
 
 const chatService = ChatService.getInstance();
 
