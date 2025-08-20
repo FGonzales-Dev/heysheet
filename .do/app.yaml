@@ -40,13 +40,14 @@ services:
 
   - name: frontend
     source_dir: frontend
+    environment_slug: node-js
     instance_size_slug: basic-xxs
     instance_count: 1
     git:
       branch: main
       repo_clone_url: https://github.com/FGonzales-Dev/heysheet.git
     build_command: npm install && npm run build
-    run_command: npm start
+    output_dir: dist
     envs:
       - key: VITE_API_URL
         value: ${APP_URL}
