@@ -7,7 +7,7 @@ services:
     instance_count: 1
     git:
       branch: main
-      repo_clone_url: https://github.com/your-username/heysheet.git
+      repo_clone_url: https://github.com/FGonzales-Dev/heysheet.git
     run_command: gunicorn core.wsgi:application --bind 0.0.0.0:8000
     envs:
       - key: DJANGO_DEBUG
@@ -44,7 +44,7 @@ services:
     instance_count: 1
     git:
       branch: main
-      repo_clone_url: https://github.com/your-username/heysheet.git
+      repo_clone_url: https://github.com/FGonzales-Dev/heysheet.git
     build_command: npm run build
     run_command: npx serve -s dist
     envs:
