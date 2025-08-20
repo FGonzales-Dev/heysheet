@@ -1,0 +1,54 @@
+name: heysheet
+services:
+  - name: backend
+    github:
+      branch: main
+      deploy_on_push: true
+      repo: your-username/heysheet
+    source_dir: backend
+    dockerfile_path: Dockerfile.backend
+    envs:
+      - key: DJANGO_DEBUG
+        value: "False"
+      - key: DJANGO_SECURE_SSL_REDIRECT
+        value: "True"
+      - key: ALLOWED_HOSTS
+        value: ${APP_DOMAIN}
+      - key: CORS_ALLOWED_ORIGINS
+        value: ${APP_URL}
+      - key: DB_NAME
+        value: ${db.DATABASE}
+      - key: DB_USER
+        value: ${db.USERNAME}
+      - key: DB_PASSWORD
+        value: ${db.PASSWORD}
+      - key: DB_HOST
+        value: ${db.HOSTNAME}
+      - key: DB_PORT
+        value: ${db.PORT}
+      - key: DJANGO_SECRET_KEY
+        type: SECRET
+        value: your-secret-key-here
+      - key: GOOGLE_SHEETS_CREDENTIALS
+        type: SECRET
+        value: your-credentials-here
+      - key: GROQ_API_KEY
+        type: SECRET
+        value: your-api-key-here
+
+  - name: frontend
+    github:
+      branch: main
+      deploy_on_push: true
+      repo: your-username/heysheet
+    source_dir: frontend
+    dockerfile_path: Dockerfile.frontend
+    envs:
+      - key: VITE_API_URL
+        value: ${APP_URL}
+
+databases:
+  - engine: PG
+    name: db
+    num_nodes: 1
+    size: basic-xs
