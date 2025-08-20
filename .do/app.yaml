@@ -45,8 +45,8 @@ services:
     git:
       branch: main
       repo_clone_url: https://github.com/FGonzales-Dev/heysheet.git
-    build_command: npm run build
-    run_command: npx serve -s dist
+    build_command: npm install && npm run build
+    run_command: npm start
     envs:
       - key: VITE_API_URL
         value: ${APP_URL}
