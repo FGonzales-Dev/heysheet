@@ -1,6 +1,6 @@
-import { FC } from 'react';
+import type { FC } from 'react';
 import clsx from 'clsx';
-import { Message as MessageType } from '../types/chat';
+import type { Message as MessageType } from '../types/chat';
 
 interface MessageProps {
   message: MessageType;
