@@ -1,54 +1,71 @@
 name: heysheet
+region: nyc
 services:
   - name: backend
-    github:
+    instance_size_slug: basic-xxs
+    instance_count: 1
+    git:
       branch: main
-      deploy_on_push: true
-      repo: your-username/heysheet
-    source_dir: backend
+      repo_clone_url: https://github.com/your-username/heysheet.git
     dockerfile_path: Dockerfile.backend
+    health_check:
+      http_path: /admin/login/
     envs:
       - key: DJANGO_DEBUG
         value: "False"
+        scope: RUN_TIME
       - key: DJANGO_SECURE_SSL_REDIRECT
         value: "True"
+        scope: RUN_TIME
       - key: ALLOWED_HOSTS
         value: ${APP_DOMAIN}
+        scope: RUN_TIME
       - key: CORS_ALLOWED_ORIGINS
         value: ${APP_URL}
+        scope: RUN_TIME
       - key: DB_NAME
         value: ${db.DATABASE}
+        scope: RUN_TIME
       - key: DB_USER
         value: ${db.USERNAME}
+        scope: RUN_TIME
       - key: DB_PASSWORD
         value: ${db.PASSWORD}
+        scope: RUN_TIME
       - key: DB_HOST
         value: ${db.HOSTNAME}
+        scope: RUN_TIME
       - key: DB_PORT
         value: ${db.PORT}
+        scope: RUN_TIME
+      - key: PORT
+        value: "8000"
+        scope: RUN_TIME
       - key: DJANGO_SECRET_KEY
         type: SECRET
-        value: your-secret-key-here
+        value: "your-secret-key-here"
       - key: GOOGLE_SHEETS_CREDENTIALS
         type: SECRET
-        value: your-credentials-here
+        value: "your-credentials-here"
       - key: GROQ_API_KEY
         type: SECRET
-        value: your-api-key-here
+        value: "your-api-key-here"
 
   - name: frontend
-    github:
+    instance_size_slug: basic-xxs
+    instance_count: 1
+    git:
       branch: main
-      deploy_on_push: true
-      repo: your-username/heysheet
-    source_dir: frontend
+      repo_clone_url: https://github.com/your-username/heysheet.git
     dockerfile_path: Dockerfile.frontend
     envs:
       - key: VITE_API_URL
         value: ${APP_URL}
+        scope: BUILD_TIME
 
 databases:
   - engine: PG
     name: db
     num_nodes: 1
-    size: basic-xs
+    size: db-s-dev-database
+    version: "15"

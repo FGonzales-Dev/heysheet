@@ -2,26 +2,12 @@ FROM python:3.11-slim
 
 WORKDIR /app
 
-# Install netcat for DB readiness checks and create non-root user
-RUN apt-get update && \
-    apt-get install -y netcat-openbsd && \
-    rm -rf /var/lib/apt/lists/* && \
-    useradd -m -r -s /bin/bash app_user && \
-    chown -R app_user:app_user /app
-
 COPY backend/requirements.txt .
 RUN pip install --no-cache-dir -r requirements.txt
 
 COPY backend .
-RUN chown -R app_user:app_user /app
-
-# Copy the entrypoint script
-COPY backend/entrypoint.sh /entrypoint.sh
-RUN chmod +x /entrypoint.sh && \
-    chown app_user:app_user /entrypoint.sh
-
-USER app_user
+RUN chmod +x build.sh
 
 EXPOSE 8000
 
-CMD ["/entrypoint.sh"]
+CMD ["./build.sh"]
