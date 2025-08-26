@@ -40,10 +40,14 @@ services:
         value: "your-secret-key-here"
       - key: GOOGLE_SHEETS_CREDENTIALS
         type: SECRET
-        value: "your-credentials-here"
+        value: '{"type":"service_account","project_id":"pro-test-460608","private_key_id":"db852a1e174526814149ee49b0099e645b44f5fb","private_key":"-----BEGIN PRIVATE KEY-----\nMIIEvQIBADANBgkqhkiG9w0BAQEFAASCBKcwggSjAgEAAoIBAQC9QldEUBMUqMJj\nDbsAbbrcxc3ALyPN3ZE+vHoKDIuJRPpoBhGpmQ3IAwvSUZ9NRve/sboE8r5VYO9A\n2Y3B078xYjHl1EfNSb6EZ1Zhe7eMgThoh+pfR3Yitn8Gbvp2bt387xeBdcigdVQi\nXuVuRd+01GYZsyihDrrT2mjrKJw9MdDt+KJLBaC7DBLq17PnKYWay1RpWyI5777W\npLytSCSVY3BoZcIKWeMoVP0AVmXd2R0pi07wau8aaSZ+7p0bob4rbrHXs+zKZpSh\nOQ66IcBW4rHDlF/6hEptAwU1fnCgTf1SWELD3+mKGxrQLsSfAd1YzAhSCCx0+1z2\n5PekEUD7AgMBAAECggEAHOssJnYN1FRND5Gjh1c8/EsFO154nBZFAU8PXsW39Iuj\nr41t2XpXjr5YahSqwMYdSR9BC0yEJMuhA0m6zWkrh8I3WaTsK8Qe5mBb5J1g2IlO\nMzrBZzmmJXu5QSRoBPy/0sw9zTxQIaSL7IyPhiALJLhnuXmUtbdoeMKg0X3tEbRt\nX230m/R4S9lDrjNWH+a1pXONxSxcHVOAi9wGvsXkFbvuoM5UTxQ3llaLvsfZ3vjD\n5zOzd5G/Vvl3ACen3RQCTBjxFsVBUITjHPPOOHvlrOnmwPQId6BBnUAPqpteVTX1\nUYkP5iYibA4d0K+qy9JaPdI59WigtowRMFZnjqoksQKBgQDyuNKENH1iZAWJtsx7\nR3mUezQsxIh+UyRWQcU8Rrn1UHUqC1uXsGmqXa3a0pPpZlcw4w7YrFVpoUkXfk/5\nqead1DFtquoCSHpvR9qH3//WeO+MvwjT5YqhNknAixP3xb7RwDt1rvlnfHTuFsh0\nRk2mQQla60y4mvoFLzzc0jOuFwKBgQDHnM2qFHWgWFCiEL099etqcnBeSBKRqB70\no3ssEcSqZWWZbaHIqPguS8zDC8UGpVp7Btdm/0kJHEFlHMZQSmqdcwWBiVKHbSi+\nEuQLUYOqwPiFhr/Dnbmq6eLP7CP+O6UKJU0u2/5e0ixJsYoDxOnY6Oo0iwS3ac8+\naO0UZsJWvQKBgDbtin5unn1Yo0QyAP5ZA3ONmhYTd8wWpp96jNcCLm0Mgyc7oMOo\nIZFzV7ewddaY2Vxv1dlEzqNz42WUqSaXw1+uOG1YA1L28fYi7ZpYH756acORK79A\nL+ohrfkLwD4PGwq+lPYh3cEEkjWbJEvj6QiZqTNREnCoabIoqX5Td2yLAoGBAMCx\nRPRXtckpGAWrBRQoLq7edEz/ZDWJxwBARKohKOmY4oA/Dftn6dS/RZZP6U3mF7dF\nvnBmJfoOda6HHYXqoIsHuxv2FV44aSk7kTq/4MvYZtB3aO0MeGxeRZ6UBZbpuwNV\nSPHgWujsGOa25VWIJHpJNbWtMctg8Df+EEcuf5I9AoGAfdeaFUq+QDOFPMLo9KEn\nKIOkjEkAm9NTKCFM+PQe67Y5189U5ty0CO9r9sEGs8ws9UNq+uO3zGwViRGIlS7Y\njI9v2azLiLgbAAyAjxOZ2ad157Kvfi4L7mIenV9oJrpjn1QUvgFOa9ZRMkirpxtP\nne6epO3hkuBlCsN7iBag+XQ=\n-----END PRIVATE KEY-----\n","client_email":"forms-service-account@pro-test-460608.iam.gserviceaccount.com","client_id":"106853191230358609458","auth_uri":"https://accounts.google.com/o/oauth2/auth","token_uri":"https://oauth2.googleapis.com/token","auth_provider_x509_cert_url":"https://www.googleapis.com/oauth2/v1/certs","client_x509_cert_url":"https://www.googleapis.com/robot/v1/metadata/x509/forms-service-account%40pro-test-460608.iam.gserviceaccount.com","universe_domain":"googleapis.com"}'
       - key: GROQ_API_KEY
         type: SECRET
-        value: "your-api-key-here"
+        value: "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"
+      - key: SPREADSHEET_ID
+        value: "19y2NvSUjukOjK-UkY_gCd1LdpHw78uz7bLZTV4MJF3Y"
+      - key: SPREADSHEET_NAME
+        value: "HeySheet Store"
 
 static_sites:
   - name: frontend

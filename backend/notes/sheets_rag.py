@@ -1,4 +1,4 @@
-import os, pickle
+import os, pickle, json
 from pathlib import Path
 import pandas as pd
 from googleapiclient.discovery import build
@@ -13,10 +13,25 @@ INDEX_PATH = str(BASE_DIR / "sheet_index.faiss")
 META_PATH  = str(BASE_DIR / "sheet_meta.pkl")
 
 def fetch_sheet() -> pd.DataFrame:
-    creds = service_account.Credentials.from_service_account_file(
-        os.environ["GOOGLE_APPLICATION_CREDENTIALS"],
-        scopes=["https://www.googleapis.com/auth/spreadsheets.readonly"],
-    )
+    # Try to load from environment variable first (for production)
+    google_creds_json = os.getenv("GOOGLE_SHEETS_CREDENTIALS")
+    if google_creds_json:
+        try:
+            creds_info = json.loads(google_creds_json)
+            creds = service_account.Credentials.from_service_account_info(
+                creds_info, scopes=["https://www.googleapis.com/auth/spreadsheets.readonly"]
+            )
+        except (json.JSONDecodeError, KeyError) as e:
+            raise ValueError(f"Invalid GOOGLE_SHEETS_CREDENTIALS JSON: {e}")
+    else:
+        # Fallback to file path (for local development)
+        creds_path = os.getenv("GOOGLE_APPLICATION_CREDENTIALS")
+        if not creds_path:
+            raise ValueError("Either GOOGLE_SHEETS_CREDENTIALS or GOOGLE_APPLICATION_CREDENTIALS must be set")
+        creds = service_account.Credentials.from_service_account_file(
+            creds_path, scopes=["https://www.googleapis.com/auth/spreadsheets.readonly"]
+        )
+    
     service = build("sheets", "v4", credentials=creds)
     values = service.spreadsheets().values().get(
         spreadsheetId=os.environ["SPREADSHEET_ID"],

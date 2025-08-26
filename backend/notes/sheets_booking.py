@@ -1,4 +1,4 @@
-import os, uuid, datetime as dt
+import os, uuid, datetime as dt, json
 from typing import Optional
 import pandas as pd
 from googleapiclient.discovery import build
@@ -11,9 +11,26 @@ APPTS_TAB = "Appointments"
 def _svc(readonly: bool):
     scope = "https://www.googleapis.com/auth/spreadsheets.readonly" if readonly \
             else "https://www.googleapis.com/auth/spreadsheets"
-    creds = service_account.Credentials.from_service_account_file(
-        os.environ["GOOGLE_APPLICATION_CREDENTIALS"], scopes=[scope]
-    )
+    
+    # Try to load from environment variable first (for production)
+    google_creds_json = os.getenv("GOOGLE_SHEETS_CREDENTIALS")
+    if google_creds_json:
+        try:
+            creds_info = json.loads(google_creds_json)
+            creds = service_account.Credentials.from_service_account_info(
+                creds_info, scopes=[scope]
+            )
+        except (json.JSONDecodeError, KeyError) as e:
+            raise ValueError(f"Invalid GOOGLE_SHEETS_CREDENTIALS JSON: {e}")
+    else:
+        # Fallback to file path (for local development)
+        creds_path = os.getenv("GOOGLE_APPLICATION_CREDENTIALS")
+        if not creds_path:
+            raise ValueError("Either GOOGLE_SHEETS_CREDENTIALS or GOOGLE_APPLICATION_CREDENTIALS must be set")
+        creds = service_account.Credentials.from_service_account_file(
+            creds_path, scopes=[scope]
+        )
+    
     return build("sheets", "v4", credentials=creds)
 
 def list_services():
