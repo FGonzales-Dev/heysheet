@@ -1,23 +1,23 @@
 name: heysheet
 region: nyc
 
-services:
+static_sites:
   - name: frontend
     source_dir: frontend
-    environment_slug: node-js
-    instance_size_slug: basic-xxs
-    instance_count: 1
-    git:
+    github:
       branch: main
-      repo_clone_url: https://github.com/FGonzales-Dev/heysheet.git
+      repo: FGonzales-Dev/heysheet
     build_command: npm ci && npm run build
-    run_command: npx serve -s dist -l $PORT
-    http_port: 3000
+    output_dir: dist
+    catchall_document: index.html
     routes:
       - path: /
-    envs:
+    environment_variables:
       - key: VITE_API_URL
         value: "https://jellyfish-app-tyyx4.ondigitalocean.app/api"
+        scope: BUILD_TIME
+
+services:
   - name: backend
     source_dir: backend
     environment_slug: python
