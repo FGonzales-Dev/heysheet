@@ -23,5 +23,5 @@ def health_check(request):
 urlpatterns = [
     path('admin/', admin.site.urls),
     path('api/', include('notes.urls')),
-    path('', health_check, name='health-check'),  # Root endpoint
+    path('api/health/', health_check, name='health-check'),  # Move health check to /api/health/
 ]

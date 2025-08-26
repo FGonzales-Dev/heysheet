@@ -1,6 +1,19 @@
 name: heysheet
 region: nyc
 
+static_sites:
+  - name: frontend
+    source_dir: frontend
+    build_command: npm ci && npm run build
+    output_dir: dist
+    routes:
+      - path: /
+      - path: /*   # SPA catch-all -> index.html
+    envs:
+      - key: VITE_API_URL
+        value: "https://jellyfish-app-tyyx4.ondigitalocean.app/api"
+        scope: BUILD_TIME
+
 services:
   - name: backend
     source_dir: backend
@@ -49,19 +62,6 @@ services:
         value: "19y2NvSUjukOjK-UkY_gCd1LdpHw78uz7bLZTV4MJF3Y"
       - key: SPREADSHEET_NAME
         value: "HeySheet Store"
-
-static_sites:
-  - name: frontend
-    source_dir: frontend
-    build_command: npm ci && npm run build
-    output_dir: dist
-    routes:
-      - path: /
-      - path: /*   # SPA catch-all -> index.html
-    envs:
-      - key: VITE_API_URL
-        value: "https://jellyfish-app-tyyx4.ondigitalocean.app/api"
-        scope: BUILD_TIME
 
 databases:
   - engine: PG
