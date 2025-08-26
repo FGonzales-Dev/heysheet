@@ -46,18 +46,14 @@ services:
 
   - name: frontend
     source_dir: frontend
-    environment_slug: node-js
+    dockerfile_path: Dockerfile       # <-- use the Dockerfile inside /frontend
     instance_size_slug: basic-xxs
     instance_count: 1
-    git:
-      branch: main
-      repo_clone_url: https://github.com/FGonzales-Dev/heysheet.git
-    build_command: npm ci && npm run build
-    # Serve the built SPA on the DO-injected $PORT
-    run_command: npx serve -s dist -l $PORT
     http_port: 8080
     routes:
       - path: /
+    health_check:
+      http_path: /health
     envs:
       - key: VITE_API_URL
         value: ${APP_URL}/api
