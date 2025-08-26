@@ -4,12 +4,17 @@ region: nyc
 services:
   - name: backend
     source_dir: backend
+    environment_slug: python
     instance_size_slug: basic-xxs
     instance_count: 1
     git:
       branch: main
       repo_clone_url: https://github.com/FGonzales-Dev/heysheet.git
-    run_command: gunicorn core.wsgi:application --bind 0.0.0.0:8000
+    # Bind to DO's injected $PORT
+    run_command: gunicorn core.wsgi:application --bind 0.0.0.0:$PORT
+    http_port: 8000
+    routes:
+      - path: /api
     envs:
       - key: DJANGO_DEBUG
         value: "False"
@@ -48,14 +53,15 @@ services:
       branch: main
       repo_clone_url: https://github.com/FGonzales-Dev/heysheet.git
     build_command: npm ci && npm run build
-    # Serve the built SPA on the injected $PORT
+    # Serve the built SPA on the DO-injected $PORT
     run_command: npx serve -s dist -l $PORT
-    # Optional, but explicit:
     http_port: 8080
+    routes:
+      - path: /
     envs:
       - key: VITE_API_URL
-        value: ${APP_URL}
-        scope: BUILD_TIME   # <= important so Vite reads it during build
+        value: ${APP_URL}/api
+        scope: BUILD_TIME
 
 databases:
   - engine: PG
