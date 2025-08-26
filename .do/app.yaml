@@ -1,5 +1,6 @@
 name: heysheet
 region: nyc
+
 services:
   - name: backend
     source_dir: backend
@@ -46,11 +47,15 @@ services:
     git:
       branch: main
       repo_clone_url: https://github.com/FGonzales-Dev/heysheet.git
-    build_command: npm install && npm run build
-    output_dir: dist
+    build_command: npm ci && npm run build
+    # Serve the built SPA on the injected $PORT
+    run_command: npx serve -s dist -l $PORT
+    # Optional, but explicit:
+    http_port: 8080
     envs:
       - key: VITE_API_URL
         value: ${APP_URL}
+        scope: BUILD_TIME   # <= important so Vite reads it during build
 
 databases:
   - engine: PG
