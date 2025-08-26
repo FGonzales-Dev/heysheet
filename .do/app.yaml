@@ -52,8 +52,15 @@ static_sites:
     output_dir: dist
     routes:
       - path: /
-      - path: /*   # SPA catch-all → index.html
+      - path: /*   # SPA catch-all -> index.html
     envs:
       - key: VITE_API_URL
         value: "https://jellyfish-app-tyyx4.ondigitalocean.app/api"
         scope: BUILD_TIME
+
+databases:
+  - engine: PG
+    name: db
+    num_nodes: 1
+    size: db-s-dev-database
+    version: "15"
