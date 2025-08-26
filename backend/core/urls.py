@@ -15,8 +15,13 @@ Including another URLconf
 """
 from django.contrib import admin
 from django.urls import path, include
+from django.http import JsonResponse
+
+def health_check(request):
+    return JsonResponse({'status': 'ok', 'message': 'HeySheet API is running'})
 
 urlpatterns = [
     path('admin/', admin.site.urls),
     path('api/', include('notes.urls')),
+    path('', health_check, name='health-check'),  # Root endpoint
 ]
