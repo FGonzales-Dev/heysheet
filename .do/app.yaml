@@ -10,6 +10,7 @@ services:
     git:
       branch: main
       repo_clone_url: https://github.com/FGonzales-Dev/heysheet.git
+    # Bind to DO's injected $PORT (not hardcoded 8000)
     run_command: gunicorn core.wsgi:application --bind 0.0.0.0:$PORT
     http_port: 8000
     routes:
@@ -45,14 +46,18 @@ services:
 
   - name: frontend
     source_dir: frontend
-    dockerfile_path: Dockerfile       # <- IMPORTANT
+    environment_slug: node-js
     instance_size_slug: basic-xxs
     instance_count: 1
+    git:
+      branch: main
+      repo_clone_url: https://github.com/FGonzales-Dev/heysheet.git
+    build_command: npm ci && npm run build
+    # Serve the built Vite app on the DO-injected $PORT
+    run_command: npx serve -s dist -l $PORT
     http_port: 8080
     routes:
       - path: /
-    health_check:
-      http_path: /health
     envs:
       - key: VITE_API_URL
         value: ${APP_URL}/api
