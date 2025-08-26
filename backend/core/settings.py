@@ -29,7 +29,13 @@ SECRET_KEY = os.getenv('DJANGO_SECRET_KEY', 'django-insecure-dpkn8*9a0nu9_7!06yu
 # SECURITY WARNING: don't run with debug turned on in production!
 DEBUG = os.getenv('DJANGO_DEBUG', 'False').lower() == 'true'
 
-ALLOWED_HOSTS = os.getenv('ALLOWED_HOSTS', 'localhost,127.0.0.1').split(',')
+def _split_env(var, default=""):
+    v = os.getenv(var, default)
+    return [x.strip() for x in v.split(",") if x.strip()]
+
+ALLOWED_HOSTS = _split_env("ALLOWED_HOSTS", ".ondigitalocean.app,localhost,127.0.0.1")
+CORS_ALLOWED_ORIGINS = _split_env("CORS_ALLOWED_ORIGINS")
+CSRF_TRUSTED_ORIGINS = _split_env("CSRF_TRUSTED_ORIGINS")
 
 
 # Application definition
