@@ -29,8 +29,8 @@ services:
     run_command: gunicorn core.wsgi:application --bind 0.0.0.0:$PORT
     http_port: 8080
     routes:
-      - path: /api
-      - path: /admin
+      - path: /api/*
+      - path: /admin/*
     envs:
       - key: ALLOWED_HOSTS
         value: ".ondigitalocean.app,localhost,127.0.0.1"

@@ -155,4 +155,4 @@ CORS_ALLOW_CREDENTIALS = True
 STATIC_URL = '/static/'
 STATIC_ROOT = os.path.join(BASE_DIR, 'staticfiles')
 
-APPEND_SLASH = False
+APPEND_SLASH = True
