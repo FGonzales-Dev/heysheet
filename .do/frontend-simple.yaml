@@ -1,0 +1,20 @@
+name: heysheet-frontend
+region: nyc
+
+services:
+  - name: frontend
+    source_dir: frontend
+    environment_slug: node-js
+    instance_size_slug: basic-xxs
+    instance_count: 1
+    git:
+      branch: main
+      repo_clone_url: https://github.com/FGonzales-Dev/heysheet.git
+    # Skip the problematic build step entirely
+    run_command: node server.js
+    http_port: 3000
+    routes:
+      - path: /
+    envs:
+      - key: VITE_API_URL
+        value: "https://seahorse-app-zt3vd.ondigitalocean.app"
