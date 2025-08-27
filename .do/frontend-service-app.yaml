@@ -10,7 +10,7 @@ services:
     git:
       branch: main
       repo_clone_url: https://github.com/FGonzales-Dev/heysheet.git
-    build_command: npm install && npm run build
+    build_command: npm install --legacy-peer-deps && npm run build
     run_command: npx serve -s dist -l $PORT
     http_port: 3000
     routes:

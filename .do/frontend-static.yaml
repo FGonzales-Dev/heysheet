@@ -7,9 +7,10 @@ static_sites:
     git:
       branch: main
       repo_clone_url: https://github.com/FGonzales-Dev/heysheet.git
-    build_command: npm install && npm run build
+    build_command: npm install --legacy-peer-deps && npm run build
     output_dir: dist
     environment_slug: node-js
+    node_version: 18.18.0
     envs:
       - key: VITE_API_URL
         value: "https://seahorse-app-zt3vd.ondigitalocean.app"
