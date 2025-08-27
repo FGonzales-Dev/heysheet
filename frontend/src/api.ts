@@ -7,12 +7,12 @@ export type Note = {
 };
 
 export async function fetchNotes(): Promise<Note[]> {
-  const res = await fetch(`${API_URL}/api/notes/`);
+  const res = await fetch(`${API_URL}/notes/`);
   return await res.json();
 }
 
 export async function createNote(note: Omit<Note, 'id'>) {
-  const res = await fetch(`${API_URL}/api/notes/`, {
+  const res = await fetch(`${API_URL}/notes/`, {
     method: 'POST',
     headers: { 'Content-Type': 'application/json' },
     body: JSON.stringify(note),
@@ -21,5 +21,5 @@ export async function createNote(note: Omit<Note, 'id'>) {
 }
 
 export async function deleteNote(id: number) {
-  await fetch(`${API_URL}/api/notes/${id}/`, { method: 'DELETE' });
+  await fetch(`${API_URL}/notes/${id}/`, { method: 'DELETE' });
 }
