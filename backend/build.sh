@@ -33,4 +33,4 @@ python manage.py check --deploy
 
 # Start the application
 echo "Starting gunicorn server on port $PORT..."
-gunicorn core.wsgi:application --bind 0.0.0.0:$PORT --workers 2 --timeout 30 --log-level info
+gunicorn core.wsgi:application --bind 0.0.0.0:$PORT --workers 1 --timeout 120 --worker-class sync --max-requests 100 --max-requests-jitter 10 --log-level info

@@ -163,3 +163,25 @@ STATIC_ROOT = os.path.join(BASE_DIR, 'staticfiles')
 STATICFILES_STORAGE = 'whitenoise.storage.CompressedManifestStaticFilesStorage'
 
 APPEND_SLASH = True
+
+# Performance optimizations for production
+if not DEBUG:
+    LOGGING = {
+        'version': 1,
+        'disable_existing_loggers': False,
+        'handlers': {
+            'console': {
+                'class': 'logging.StreamHandler',
+            },
+        },
+        'loggers': {
+            'django': {
+                'handlers': ['console'],
+                'level': 'WARNING',
+            },
+        },
+    }
+    
+    # Reduce memory usage
+    CONN_MAX_AGE = 600  # Keep database connections alive
+    DEFAULT_FILE_STORAGE = 'django.core.files.storage.FileSystemStorage'
