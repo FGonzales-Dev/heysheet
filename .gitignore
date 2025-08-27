@@ -7,7 +7,7 @@ __pycache__/
 .Python
 build/
 develop-eggs/
-dist/
+# dist/ # Commented out - we need frontend/dist for deployment
 downloads/
 eggs/
 .eggs/
