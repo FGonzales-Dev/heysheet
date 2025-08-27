@@ -1,0 +1,18 @@
+name: heysheet-frontend
+region: nyc
+
+static_sites:
+  - name: frontend
+    source_dir: frontend
+    git:
+      branch: main
+      repo_clone_url: https://github.com/FGonzales-Dev/heysheet.git
+    build_command: npm ci && npm run build
+    output_dir: dist
+    index_document: index.html
+    error_document: index.html
+    routes:
+      - path: /
+    envs:
+      - key: VITE_API_URL
+        value: "https://YOUR_BACKEND_APP_URL.ondigitalocean.app"
