@@ -45,8 +45,10 @@ npm-debug.log*
 yarn-debug.log*
 yarn-error.log*
 .pnpm-debug.log*
-dist/
+# dist/  # Commented out - we need frontend/dist for deployment
 dist-ssr/
+# Allow frontend/dist but ignore other dist directories
+backend/dist/
 *.local
 coverage/
 
