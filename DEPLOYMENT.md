@@ -28,8 +28,18 @@ The previous monolithic deployment was causing 404 errors due to:
 - [ ] Note backend URL for frontend config
 
 ### Frontend Deployment  
+**Option 1: Static Site (Recommended)**
 - [ ] Update `.do/frontend-app.yaml` with backend URL
-- [ ] Deploy as static site
+- [ ] Deploy as static site using the App Platform interface
+- [ ] Select "Static Site" when creating the app
+- [ ] Use the updated `frontend-app.yaml` spec
+
+**Option 2: Service-based (If static site fails)**
+- [ ] Use `.do/frontend-service-app.yaml` instead
+- [ ] Deploy as a regular service
+- [ ] This includes a Node.js server with `serve`
+
+**Common Steps**
 - [ ] Verify React app loads
 - [ ] Test API calls to backend
 
