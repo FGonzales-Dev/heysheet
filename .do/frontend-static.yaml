@@ -7,7 +7,7 @@ static_sites:
     git:
       branch: main
       repo_clone_url: https://github.com/FGonzales-Dev/heysheet.git
-    build_command: npm ci && npm run build
+    build_command: npm install && npm run build
     output_dir: dist
     environment_slug: node-js
     envs:
