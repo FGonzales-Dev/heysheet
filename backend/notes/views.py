@@ -2,9 +2,9 @@ from rest_framework import viewsets
 from rest_framework.decorators import api_view
 from rest_framework.response import Response
 
-from django.views.decorators.csrf import csrf_exempt  # added
-from threading import Thread                          # added
-import logging                                        # added
+from django.views.decorators.csrf import csrf_exempt
+from threading import Thread
+import logging
 
 from .models import Note
 from .serializers import NoteSerializer
@@ -48,7 +48,7 @@ def _run_sync_job():
 def sync(request):
     """
     Start the Google Sheets sync in a background thread and return 202 immediately.
-    This prevents DigitalOcean 504s (and the misleading CORS error in the browser).
+    This prevents timeouts (504) and the misleading CORS message.
     """
     try:
         # Quick env checks so we fail fast with JSON (not a 504)
@@ -84,14 +84,14 @@ def sync(request):
 # QA engine: build lazily but NEVER block a request
 # ---------------------------------------------------
 _engine = None
-_engine_building = False  # protects against spawning multiple builders
+_engine_building = False  # avoids spawning multiple builders
 
 
 def _build_engine_async():
-    """Builds the index then instantiates QAEngine, without blocking requests."""
+    """Build the index then instantiate QAEngine without blocking requests."""
     global _engine, _engine_building
     try:
-        # Build/update index first (heavy)
+        # build/update the index (heavy)
         sync_sheet()
         _engine = QAEngine()
         logging.info("QAEngine built and ready.")
@@ -103,18 +103,15 @@ def _build_engine_async():
 
 def _get_engine_nonblocking():
     """
-    Returns QAEngine if available. If it's not built yet, start building in the
-    background (once) and signal the caller to retry soon.
+    Return QAEngine if ready. If not, start a background build (once) and signal
+    the caller to retry soon.
     """
     global _engine, _engine_building
     if _engine is not None:
         return _engine
-
     if not _engine_building:
         _engine_building = True
         Thread(target=_build_engine_async, daemon=True).start()
-
-    # Signal to the caller that the engine is still initializing
     raise RuntimeError("engine_initializing")
 
 
@@ -304,7 +301,7 @@ def ask(request):
     intent = _intent(q)
     logging.info("=== /api/ask === %s", {"q": q, "intent": intent})
 
-    # 1) services list (may hit Sheets; if it’s slow for you, background it similarly)
+    # 1) services list
     if intent == "services.list":
         svcs = list_services()
         lines = []
