@@ -38,8 +38,14 @@ def _split_env(var, default=""):
     return [x.strip() for x in v.split(",") if x.strip()]
 
 ALLOWED_HOSTS = _split_env("ALLOWED_HOSTS", ".ondigitalocean.app,localhost,127.0.0.1")
-CORS_ALLOWED_ORIGINS = _split_env("CORS_ALLOWED_ORIGINS", "http://localhost:5173","https://king-prawn-app-mmwbp.ondigitalocean.app")
-CSRF_TRUSTED_ORIGINS = _split_env("CSRF_TRUSTED_ORIGINS", "http://localhost:5173","https://king-prawn-app-mmwbp.ondigitalocean.app")
+CORS_ALLOWED_ORIGINS = _split_env(
+    "CORS_ALLOWED_ORIGINS",
+    "http://localhost:5173,https://king-prawn-app-mmwbp.ondigitalocean.app",
+)
+CSRF_TRUSTED_ORIGINS = _split_env(
+    "CSRF_TRUSTED_ORIGINS",
+    "http://localhost:5173,https://king-prawn-app-mmwbp.ondigitalocean.app",
+)
 
 
 # Application definition
@@ -58,10 +64,10 @@ INSTALLED_APPS = [
 ]
 
 MIDDLEWARE = [
+    'corsheaders.middleware.CorsMiddleware',
     'django.middleware.security.SecurityMiddleware',
     'whitenoise.middleware.WhiteNoiseMiddleware',
     'django.contrib.sessions.middleware.SessionMiddleware',
-    'corsheaders.middleware.CorsMiddleware',
     'django.middleware.common.CommonMiddleware',
     'django.middleware.csrf.CsrfViewMiddleware',
     'django.contrib.auth.middleware.AuthenticationMiddleware',
@@ -151,8 +157,6 @@ SESSION_COOKIE_SECURE = True
 CSRF_COOKIE_SECURE = True
 SECURE_BROWSER_XSS_FILTER = True
 SECURE_CONTENT_TYPE_NOSNIFF = True
-
-# CORS Settings - Remove duplicate, already set above
 CORS_ALLOW_CREDENTIALS = True
 
 # Static files configuration
