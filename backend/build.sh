@@ -23,7 +23,7 @@ pip install --no-cache-dir -r requirements.txt
 if [ -n "$GOOGLE_SHEETS_CREDENTIALS" ]; then
     echo "Creating Google credentials file..."
     mkdir -p /app/credentials
-    echo "$GOOGLE_SHEETS_CREDENTIALS" > /app/credentials/service_account.json
+    echo "$GOOGLE_SHEETS_CREDENTIALS" > /app/credentials/service-account.json
 fi
 
 # Collect static files
