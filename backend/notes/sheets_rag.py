@@ -8,7 +8,7 @@ import faiss
 from groq import Groq
 from django.conf import settings
 
-BASE_DIR = Path(settings.BASE_DIR)  # points to backend/
+BASE_DIR = Path("/tmp")  # Use /tmp directory which is writable
 INDEX_PATH = str(BASE_DIR / "sheet_index.faiss")
 META_PATH  = str(BASE_DIR / "sheet_meta.pkl")
 

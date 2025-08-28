@@ -17,8 +17,40 @@ class NoteViewSet(viewsets.ModelViewSet):
 
 @api_view(["POST"])
 def sync(request):
-    n = sync_sheet()
-    return Response({"synced_rows": n})
+    try:
+        # Check if credentials are set
+        google_creds = os.getenv("GOOGLE_SHEETS_CREDENTIALS")
+        if not google_creds:
+            return Response(
+                {"error": "GOOGLE_SHEETS_CREDENTIALS not set"}, 
+                status=500
+            )
+        
+        # Check if spreadsheet ID is set
+        spreadsheet_id = os.getenv("SPREADSHEET_ID")
+        if not spreadsheet_id:
+            return Response(
+                {"error": "SPREADSHEET_ID not set"}, 
+                status=500
+            )
+        
+        # Try to sync
+        n = sync_sheet()
+        return Response({"synced_rows": n})
+        
+    except json.JSONDecodeError as e:
+        return Response(
+            {"error": f"Invalid GOOGLE_SHEETS_CREDENTIALS JSON: {str(e)}"}, 
+            status=500
+        )
+    except Exception as e:
+        import traceback
+        print("Sync error:", str(e))
+        print("Traceback:", traceback.format_exc())
+        return Response(
+            {"error": str(e)}, 
+            status=500
+        )
 
 
 # -------- single endpoint plumbing --------
