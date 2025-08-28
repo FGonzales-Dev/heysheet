@@ -38,8 +38,8 @@ def _split_env(var, default=""):
     return [x.strip() for x in v.split(",") if x.strip()]
 
 ALLOWED_HOSTS = _split_env("ALLOWED_HOSTS", ".ondigitalocean.app,localhost,127.0.0.1")
-CORS_ALLOWED_ORIGINS = _split_env("CORS_ALLOWED_ORIGINS", "http://localhost:5173")
-CSRF_TRUSTED_ORIGINS = _split_env("CSRF_TRUSTED_ORIGINS", "http://localhost:5173")
+CORS_ALLOWED_ORIGINS = _split_env("CORS_ALLOWED_ORIGINS", "http://localhost:5173","https://king-prawn-app-mmwbp.ondigitalocean.app")
+CSRF_TRUSTED_ORIGINS = _split_env("CSRF_TRUSTED_ORIGINS", "http://localhost:5173","https://king-prawn-app-mmwbp.ondigitalocean.app")
 
 
 # Application definition
