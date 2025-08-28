@@ -2,6 +2,10 @@ from rest_framework import viewsets
 from rest_framework.decorators import api_view
 from rest_framework.response import Response
 
+from django.views.decorators.csrf import csrf_exempt 
+from threading import Thread                          
+import logging                                        
+
 from .models import Note
 from .serializers import NoteSerializer
 from .sheets_rag import sync_sheet, QAEngine
@@ -10,47 +14,56 @@ from .sheets_booking import list_services, create_appointment, update_appointmen
 from groq import Groq
 import os, json, re
 
+
 class NoteViewSet(viewsets.ModelViewSet):
     queryset = Note.objects.all()
     serializer_class = NoteSerializer
 
 
+# ---------- run the real Google Sheets sync in the background ----------
+def _run_sync_job():
+    try:
+        n = sync_sheet()  # your original heavy work
+        logging.info("Sheets sync finished. synced_rows=%s", n)
+    except Exception as e:
+        logging.exception("Sheets sync failed: %s", e)
+
+
+@csrf_exempt
 @api_view(["POST"])
 def sync(request):
+    """
+    Start the real Google Sheets sync in a background thread and return 202 immediately.
+    This prevents DigitalOcean 504s (and the misleading CORS error in the browser).
+    """
     try:
-        # Check if credentials are set
+        # quick env checks so we fail fast with JSON (not 504)
         google_creds = os.getenv("GOOGLE_SHEETS_CREDENTIALS")
         if not google_creds:
-            return Response(
-                {"error": "GOOGLE_SHEETS_CREDENTIALS not set"}, 
-                status=500
-            )
-        
-        # Check if spreadsheet ID is set
+            return Response({"error": "GOOGLE_SHEETS_CREDENTIALS not set"}, status=500)
+
         spreadsheet_id = os.getenv("SPREADSHEET_ID")
         if not spreadsheet_id:
+            return Response({"error": "SPREADSHEET_ID not set"}, status=500)
+
+        # sanity-check creds look like JSON (common misconfig)
+        try:
+            json.loads(google_creds)
+        except json.JSONDecodeError as e:
             return Response(
-                {"error": "SPREADSHEET_ID not set"}, 
+                {"error": f"Invalid GOOGLE_SHEETS_CREDENTIALS JSON: {str(e)}"},
                 status=500
             )
-        
-        # Try to sync
-        n = sync_sheet()
-        return Response({"synced_rows": n})
-        
-    except json.JSONDecodeError as e:
-        return Response(
-            {"error": f"Invalid GOOGLE_SHEETS_CREDENTIALS JSON: {str(e)}"}, 
-            status=500
-        )
+
+        # fire-and-forget so HTTP response returns immediately (no 504)
+        Thread(target=_run_sync_job, daemon=True).start()
+        return Response({"started": True}, status=202)
+
     except Exception as e:
         import traceback
         print("Sync error:", str(e))
         print("Traceback:", traceback.format_exc())
-        return Response(
-            {"error": str(e)}, 
-            status=500
-        )
+        return Response({"error": str(e)}, status=500)
 
 
 # -------- single endpoint plumbing --------

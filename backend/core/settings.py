@@ -46,7 +46,7 @@ CSRF_TRUSTED_ORIGINS = _split_env(
     "CSRF_TRUSTED_ORIGINS",
     "http://localhost:5173,https://king-prawn-app-mmwbp.ondigitalocean.app",
 )
-
+CORS_ALLOW_CREDENTIALS=False
 
 # Application definition
 
@@ -157,6 +157,7 @@ CSRF_COOKIE_SECURE = True
 SECURE_BROWSER_XSS_FILTER = True
 SECURE_CONTENT_TYPE_NOSNIFF = True
 CORS_ALLOW_CREDENTIALS = True
+SESSION_ENGINE = "django.contrib.sessions.backends.signed_cookies"
 
 # Static files configuration
 STATIC_URL = '/static/'
