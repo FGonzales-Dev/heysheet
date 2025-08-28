@@ -2,9 +2,9 @@ from rest_framework import viewsets
 from rest_framework.decorators import api_view
 from rest_framework.response import Response
 
-from django.views.decorators.csrf import csrf_exempt 
-from threading import Thread                          
-import logging                                        
+from django.views.decorators.csrf import csrf_exempt  # added
+from threading import Thread                          # added
+import logging                                        # added
 
 from .models import Note
 from .serializers import NoteSerializer
@@ -15,15 +15,29 @@ from groq import Groq
 import os, json, re
 
 
+# -------------------------
+# Notes CRUD (unchanged)
+# -------------------------
 class NoteViewSet(viewsets.ModelViewSet):
     queryset = Note.objects.all()
     serializer_class = NoteSerializer
 
 
-# ---------- run the real Google Sheets sync in the background ----------
+# -------------------------
+# Health check (fast)
+# -------------------------
+@api_view(["GET", "POST"])
+def ping(request):
+    return Response({"ok": True})
+
+
+# ---------------------------------------------------
+# /api/sync: REAL SYNC without 504s (return fast)
+# ---------------------------------------------------
 def _run_sync_job():
+    """Background job that performs the actual Google Sheets sync."""
     try:
-        n = sync_sheet()  # your original heavy work
+        n = sync_sheet()
         logging.info("Sheets sync finished. synced_rows=%s", n)
     except Exception as e:
         logging.exception("Sheets sync failed: %s", e)
@@ -33,11 +47,11 @@ def _run_sync_job():
 @api_view(["POST"])
 def sync(request):
     """
-    Start the real Google Sheets sync in a background thread and return 202 immediately.
+    Start the Google Sheets sync in a background thread and return 202 immediately.
     This prevents DigitalOcean 504s (and the misleading CORS error in the browser).
     """
     try:
-        # quick env checks so we fail fast with JSON (not 504)
+        # Quick env checks so we fail fast with JSON (not a 504)
         google_creds = os.getenv("GOOGLE_SHEETS_CREDENTIALS")
         if not google_creds:
             return Response({"error": "GOOGLE_SHEETS_CREDENTIALS not set"}, status=500)
@@ -46,7 +60,7 @@ def sync(request):
         if not spreadsheet_id:
             return Response({"error": "SPREADSHEET_ID not set"}, status=500)
 
-        # sanity-check creds look like JSON (common misconfig)
+        # Sanity-check creds JSON (common misconfig)
         try:
             json.loads(google_creds)
         except json.JSONDecodeError as e:
@@ -55,7 +69,7 @@ def sync(request):
                 status=500
             )
 
-        # fire-and-forget so HTTP response returns immediately (no 504)
+        # Fire-and-forget so HTTP response returns immediately (no 504)
         Thread(target=_run_sync_job, daemon=True).start()
         return Response({"started": True}, status=202)
 
@@ -66,18 +80,42 @@ def sync(request):
         return Response({"error": str(e)}, status=500)
 
 
-# -------- single endpoint plumbing --------
+# ---------------------------------------------------
+# QA engine: build lazily but NEVER block a request
+# ---------------------------------------------------
 _engine = None
-def _get_engine():
-    global _engine
-    if _engine is None:
-        try:
-            _engine = QAEngine()
-        except RuntimeError:
-            # build index on first use
-            sync_sheet()
-            _engine = QAEngine()
-    return _engine
+_engine_building = False  # protects against spawning multiple builders
+
+
+def _build_engine_async():
+    """Builds the index then instantiates QAEngine, without blocking requests."""
+    global _engine, _engine_building
+    try:
+        # Build/update index first (heavy)
+        sync_sheet()
+        _engine = QAEngine()
+        logging.info("QAEngine built and ready.")
+    except Exception as e:
+        logging.exception("QAEngine build failed: %s", e)
+    finally:
+        _engine_building = False
+
+
+def _get_engine_nonblocking():
+    """
+    Returns QAEngine if available. If it's not built yet, start building in the
+    background (once) and signal the caller to retry soon.
+    """
+    global _engine, _engine_building
+    if _engine is not None:
+        return _engine
+
+    if not _engine_building:
+        _engine_building = True
+        Thread(target=_build_engine_async, daemon=True).start()
+
+    # Signal to the caller that the engine is still initializing
+    raise RuntimeError("engine_initializing")
 
 
 _groq = Groq(api_key=os.getenv("GROQ_API_KEY"))
@@ -248,8 +286,14 @@ def _extract_update(text: str):
         return (m.group(1) if m else None), {}
 
 
+@csrf_exempt
 @api_view(["POST"])
 def ask(request):
+    """
+    Handle Q&A and booking intents.
+    IMPORTANT: Never build heavy indexes inside this request; if the QAEngine
+    is not ready, return 202 and build in the background.
+    """
     q = (request.data.get("question") or "").strip()
     if not q:
         return Response({
@@ -258,9 +302,9 @@ def ask(request):
         })
 
     intent = _intent(q)
-    print("\n=== /api/ask ===", {"q": q, "intent": intent})  # check with: docker compose logs -f backend
+    logging.info("=== /api/ask === %s", {"q": q, "intent": intent})
 
-    # 1) services list (return readable summary + raw array)
+    # 1) services list (may hit Sheets; if it’s slow for you, background it similarly)
     if intent == "services.list":
         svcs = list_services()
         lines = []
@@ -338,8 +382,17 @@ def ask(request):
             "patched": patch
         })
 
-    # 4) fallback — business-hours RAG
-    engine = _get_engine()
+    # 4) fallback — business-hours RAG (non-blocking build)
+    try:
+        engine = _get_engine_nonblocking()
+    except RuntimeError as e:
+        if "engine_initializing" in str(e):
+            return Response(
+                {"answer": "Initializing knowledge index… try again in a moment.", "intent": "qa_initializing"},
+                status=202
+            )
+        raise
+
     answer, matches = engine.ask(q)
     return Response({
         "answer": answer,
