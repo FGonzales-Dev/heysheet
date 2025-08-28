@@ -19,6 +19,13 @@ fi
 echo "Installing dependencies..."
 pip install --no-cache-dir -r requirements.txt
 
+# Create credentials file from environment variable if needed
+if [ -n "$GOOGLE_SHEETS_CREDENTIALS" ]; then
+    echo "Creating Google credentials file..."
+    mkdir -p /app/credentials
+    echo "$GOOGLE_SHEETS_CREDENTIALS" > /app/credentials/service-account.json
+fi
+
 # Collect static files
 echo "Collecting static files..."
 python manage.py collectstatic --noinput
