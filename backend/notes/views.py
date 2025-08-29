@@ -13,6 +13,18 @@ from .sheets_booking import list_services, create_appointment, update_appointmen
 
 from groq import Groq
 import os, json, re
+from django.http import JsonResponse
+
+
+@csrf_exempt
+def ping_plain(request):
+    # should always return instantly
+    return JsonResponse({"ok": True, "pid": os.getpid()})
+
+@csrf_exempt
+def sync_plain(request):
+    # TEMP: prove requests reach Django (no threads, no Sheets, no DRF)
+    return JsonResponse({"ok": True, "path": "/api/sync_plain"})
 
 
 # -------------------------

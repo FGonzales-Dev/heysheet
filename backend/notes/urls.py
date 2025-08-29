@@ -1,5 +1,5 @@
 from rest_framework.routers import DefaultRouter
-from .views import NoteViewSet, sync, ask
+from .views import NoteViewSet, sync, ask, ping_plain, sync_plain
 from django.urls import path, include
 
 router = DefaultRouter()
@@ -9,4 +9,6 @@ urlpatterns = [
     path('', include(router.urls)),
     path('sync', sync, name='sync-sheet'),  # POST /api/notes/sync
     path('ask', ask, name='ask-question'),  # POST /api/notes/ask
+    path('ping_plain', ping_plain),     
+    path('sync_plain', sync_plain), 
 ]
