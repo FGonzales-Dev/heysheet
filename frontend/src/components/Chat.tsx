@@ -58,6 +58,7 @@ export const Chat: FC = () => {
         <h1 className="text-2xl font-bold text-gray-900">Google Sheet Chat</h1>
         <button
           onClick={async () => {
+            console.log('Pinging server...');
             await syncData();
             try {
               const response = await pingServer();
