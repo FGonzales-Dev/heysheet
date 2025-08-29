@@ -57,7 +57,15 @@ export const Chat: FC = () => {
       <div className="flex justify-between items-center py-4 border-b">
         <h1 className="text-2xl font-bold text-gray-900">Google Sheet Chat</h1>
         <button
-          onClick={() => syncData()}
+          onClick={async () => {
+            await syncData();
+            try {
+              const response = await pingServer();
+              console.log('Ping response:', response);
+            } catch (error) {
+              console.error('Ping error:', error);
+            }
+          }}
           disabled={isLoading}
           className="flex items-center gap-2 px-4 py-2 text-sm text-gray-600 hover:text-gray-900"
         >
