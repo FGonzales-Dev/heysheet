@@ -2,6 +2,7 @@ import { type FC, useEffect, useRef, useState } from 'react';
 import { useChatStore } from '../store/chatStore';
 import { Message } from './Message';
 import { ChatInput } from './ChatInput';
+import { pingServer } from '../api';
 
 const RefreshIcon = () => (
   <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth={1.5} stroke="currentColor">
@@ -33,6 +34,14 @@ export const Chat: FC = () => {
     const initialSync = async () => {
       await syncData();
       setIsInitialLoad(false);
+      
+      // Test ping endpoint
+      try {
+        const response = await pingServer();
+        console.log('Ping response:', response);
+      } catch (error) {
+        console.error('Ping error:', error);
+      }
     };
     initialSync();
   }, [syncData]);

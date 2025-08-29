@@ -23,3 +23,8 @@ export async function createNote(note: Omit<Note, 'id'>) {
 export async function deleteNote(id: number) {
   await fetch(`${API_URL}/notes/${id}/`, { method: 'DELETE' });
 }
+
+export async function pingServer(): Promise<string> {
+  const res = await fetch(`${API_URL}/api/ping_plain`);
+  return await res.text();
+}
