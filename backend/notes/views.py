@@ -241,7 +241,7 @@ def _extract_create(text: str, services_data):
     if missing:
         try:
             raw = _groq.chat.completions.create(
-                model="llama3-8b-8192",
+                model="llama-3.1-8b-instant",
                 temperature=0,
                 messages=[
                     {"role": "system", "content": "Extract fields from text. Return strict JSON only."},
@@ -273,7 +273,7 @@ def _extract_update(text: str):
     """extract booking_id and patch fields from free text."""
     try:
         raw = _groq.chat.completions.create(
-            model="llama3-8b-8192",
+            model="llama-3.1-8b-instant",
             temperature=0,
             messages=[
                 {"role": "system", "content": "Extract update for an appointment. Return STRICT JSON only."},
