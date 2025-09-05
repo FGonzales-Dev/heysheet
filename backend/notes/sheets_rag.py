@@ -100,7 +100,7 @@ class QAEngine:
                   "If unknown, say you don't know and reference the closest rows.")
         user = f"Context:\n{ctx_block}\n\nQuestion: {question}\nProvide a concise answer with row refs."
         resp = self.llm.chat.completions.create(
-            model="llama3-70b-8192",
+            model="llama3-8b-8192",
             messages=[{"role":"system","content":system},{"role":"user","content":user}],
             temperature=0.2,
         )
